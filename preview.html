@@ -6,18 +6,19 @@
     <title>Excalidraw Preview</title>
     <link rel="stylesheet" href="preview.css">
     <!-- Excalidraw CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.css">
+    <link rel="stylesheet" href="vendor/excalidraw.min.css">
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1 id="fileName">Excalidraw Preview</h1>
-            <div class="header-actions">
-                <button id="fullscreenBtn" title="Toggle Fullscreen">⛶</button>
-                <button id="closeBtn" title="Close Preview">✕</button>
-            </div>
-        </div>
+    <div class="view-toggle">
+        <button id="previewBtn" class="active">Preview</button>
+        <button id="originalBtn">Original</button>
     </div>
+
+    <div id="original-container" class="hidden">
+        <pre><code></code></pre>
+    </div>
+    
+    <script src="vendor/excalidraw-assets-path.js"></script>
     
     <div class="preview-container">
         <div id="excalidraw-container"></div>
@@ -31,8 +32,12 @@
         </div>
     </div>
 
+    <!-- Excalidraw Dependencies -->
+    <script src="vendor/react.production.min.js"></script>
+    <script src="vendor/react-dom.production.min.js"></script>
+
     <!-- Excalidraw JavaScript -->
-    <script src="https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.js"></script>
+    <script src="vendor/excalidraw.min.js"></script>
     <script src="preview.js"></script>
 </body>
 </html> 

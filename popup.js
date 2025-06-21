@@ -26,18 +26,23 @@ document.addEventListener('DOMContentLoaded', function() {
     previewCurrentBtn.addEventListener('click', function() {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             const currentTab = tabs[0];
-            if (currentTab.url.startsWith('file://')) {
-                // Check if it's an Excalidraw file
-                if (currentTab.url.endsWith('.excalidraw') || currentTab.url.endsWith('.json')) {
-                    chrome.tabs.sendMessage(currentTab.id, {
-                        action: 'previewFile',
-                        url: currentTab.url
-                    });
-                } else {
-                    showStatus('Current tab is not an Excalidraw file', 'error');
-                }
+            const url = currentTab.url;
+            
+            if (url.endsWith('.excalidraw') || url.endsWith('.json') || url.includes('.excalidraw?')) {
+                chrome.runtime.sendMessage({
+                    action: 'previewFileFromUrl',
+                    url: url
+                }, response => {
+                    if (chrome.runtime.lastError) {
+                        showStatus('Error: ' + chrome.runtime.lastError.message, 'error');
+                    } else if (response && response.status === 'error') {
+                        showStatus('Error: ' + response.message, 'error');
+                    } else {
+                        showStatus('Preview opened in a new tab.', 'success');
+                    }
+                });
             } else {
-                showStatus('Please open an Excalidraw file in the current tab', 'error');
+                showStatus('Current tab is not an Excalidraw file.', 'error');
             }
         });
     });

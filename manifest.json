@@ -9,24 +9,21 @@
     "tabs"
   ],
   "host_permissions": [
-    "file://*/*"
+    "file://*/*",
+    "<all_urls>"
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "Ex-Peek"
-  },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": [
-        "file://*/*.excalidraw",
-        "file://*/*.json"
+        "<all_urls>"
       ],
       "js": [
         "content.js"
-      ]
+      ],
+      "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [
@@ -35,8 +32,13 @@
         "preview.html",
         "preview.js",
         "preview.css",
-        "https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.css",
-        "https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.js"
+        "vendor/excalidraw.min.css",
+        "vendor/excalidraw.min.js",
+        "vendor/react.production.min.js",
+        "vendor/react-dom.production.min.js",
+        "vendor/excalidraw-assets/vendor-53d1c69ef585b6dd219b.js",
+        "vendor/excalidraw-assets/chunk-4736-a18dd69e38e6f103b44b.js",
+        "vendor/excalidraw-assets-path.js"
       ],
       "matches": [
         "<all_urls>"
@@ -44,9 +46,9 @@
     }
   ],
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/image.png",
+    "48": "icons/image.png",
+    "128": "icons/image.png"
   },
   "short_name": "Ex-Peek"
 } 
