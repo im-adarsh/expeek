@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Ex-Peek",
+  "version": "1.0.0",
+  "description": "A powerful Excalidraw file previewer for your browser.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "file://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Ex-Peek"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "file://*/*.excalidraw",
+        "file://*/*.json"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "preview.html",
+        "preview.js",
+        "preview.css",
+        "https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.css",
+        "https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "short_name": "Ex-Peek"
+} 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excalidraw Preview</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Excalidraw Preview</h1>
+        
+        <div class="section">
+            <h2>Open Excalidraw File</h2>
+            <input type="file" id="fileInput" accept=".excalidraw,.json" />
+            <button id="openFileBtn">Open File</button>
+        </div>
+
+        <div class="section">
+            <h2>Recent Files</h2>
+            <div id="recentFiles" class="recent-files">
+                <!-- Recent files will be populated here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Quick Actions</h2>
+            <button id="previewCurrentBtn">Preview Current Tab</button>
+            <button id="clearHistoryBtn">Clear History</button>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html> 

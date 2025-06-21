@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excalidraw Preview</title>
+    <link rel="stylesheet" href="preview.css">
+    <!-- Excalidraw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1 id="fileName">Excalidraw Preview</h1>
+            <div class="header-actions">
+                <button id="fullscreenBtn" title="Toggle Fullscreen">⛶</button>
+                <button id="closeBtn" title="Close Preview">✕</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="preview-container">
+        <div id="excalidraw-container"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading Excalidraw...</p>
+        </div>
+        <div id="error" class="error hidden">
+            <p>Error loading file</p>
+            <button id="retryBtn">Retry</button>
+        </div>
+    </div>
+
+    <!-- Excalidraw JavaScript -->
+    <script src="https://unpkg.com/@excalidraw/excalidraw@0.15.3/dist/excalidraw.min.js"></script>
+    <script src="preview.js"></script>
+</body>
+</html> 
