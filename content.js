@@ -2,6 +2,10 @@
 // It listens for messages from the popup to preview files.
 
 (function() {
+    // Check if the script has already run to prevent multiple injections.
+    if (window.exPeekHasRun) {
+        return;
+    }
     const url = window.location.href;
     const isExcalidrawUrl = url.includes('.excalidraw') || (url.endsWith('.json') && url.toLowerCase().includes('excalidraw'));
 
@@ -14,6 +18,7 @@
     try {
         const data = JSON.parse(pageContent);
         if (data && data.type === 'excalidraw') {
+            window.exPeekHasRun = true;
             chrome.runtime.sendMessage({
                 action: 'showPreviewInCurrentTab',
                 fileData: {
@@ -24,6 +29,6 @@
             });
         }
     } catch (e) {
-        // Not a valid JSON file, this page is not for us.
+        // Not a valid JSON file.
     }
 })(); 
