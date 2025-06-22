@@ -4,36 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excalidraw Preview</title>
+    <link rel="stylesheet" href="httpsd://unpkg.com/@excalidraw/excalidraw/dist/excalidraw.min.css">
     <link rel="stylesheet" href="preview.css">
-    <!-- Excalidraw CSS -->
-    <link rel="stylesheet" href="vendor/excalidraw.min.css">
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@excalidraw/excalidraw/dist/excalidraw.production.min.js"></script>
 </head>
 <body>
-    <div class="view-toggle">
-        <button id="previewBtn" class="active">Preview</button>
-        <button id="originalBtn">Original</button>
-    </div>
-    
-    <script src="vendor/excalidraw-assets-path.js"></script>
-    
-    <div class="preview-container">
-        <div id="excalidraw-container"></div>
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Loading Excalidraw...</p>
-        </div>
-        <div id="error" class="error hidden">
-            <p>Error loading file</p>
-            <button id="retryBtn">Retry</button>
-        </div>
-    </div>
-
-    <!-- Excalidraw Dependencies -->
-    <script src="vendor/react.production.min.js"></script>
-    <script src="vendor/react-dom.production.min.js"></script>
-
-    <!-- Excalidraw JavaScript -->
-    <script src="vendor/excalidraw.min.js"></script>
+    <div id="root"></div>
     <script src="preview.js"></script>
 </body>
 </html> 

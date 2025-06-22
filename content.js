@@ -1,34 +1,28 @@
-// This script runs in the context of web pages.
-// It listens for messages from the popup to preview files.
-
 (function() {
-    // Check if the script has already run to prevent multiple injections.
-    if (window.exPeekHasRun) {
-        return;
-    }
-    const url = window.location.href;
-    const isExcalidrawUrl = url.includes('.excalidraw') || (url.endsWith('.json') && url.toLowerCase().includes('excalidraw'));
+    const VIEWER_URL = 'https://<YOUR_GITHUB_USERNAME>.github.io/expeek/preview.html';
 
+    // 1. Check if we are on a raw Excalidraw file URL.
+    const isExcalidrawUrl = window.location.href.includes('.excalidraw') || 
+                            (window.location.href.endsWith('.json') && document.body.innerText.includes('"type": "excalidraw"'));
+    
     if (!isExcalidrawUrl) {
         return;
     }
 
-    const pageContent = document.body.innerText;
-
+    // 2. We need to run this after the page's content has loaded.
+    // The raw JSON is in the body's innerText.
     try {
-        const data = JSON.parse(pageContent);
-        if (data && data.type === 'excalidraw') {
-            window.exPeekHasRun = true;
-            chrome.runtime.sendMessage({
-                action: 'showPreviewInCurrentTab',
-                fileData: {
-                    name: url.split('/').pop().split('?')[0],
-                    content: pageContent,
-                    timestamp: Date.now()
-                }
-            });
-        }
+        const fileContent = document.body.innerText;
+        // Verify it's valid JSON before proceeding.
+        JSON.parse(fileContent);
+
+        // 3. Base64-encode the content to make it URL-safe.
+        const encodedContent = btoa(fileContent);
+
+        // 4. Redirect to the viewer page with the data in the hash.
+        window.location.href = `${VIEWER_URL}#${encodedContent}`;
+
     } catch (e) {
-        // Not a valid JSON file.
+        console.error("Ex-Peek: Failed to parse or redirect Excalidraw file.", e);
     }
-})(); 
+})();

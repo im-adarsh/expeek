@@ -1,66 +1,48 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const excalidrawContainer = document.getElementById('excalidraw-container');
-    const loadingDiv = document.getElementById('loading');
-    const errorDiv = document.getElementById('error');
-    const retryBtn = document.getElementById('retryBtn');
-    const previewBtn = document.getElementById('previewBtn');
-    const originalBtn = document.getElementById('originalBtn');
+const App = () => {
+    const [initialData, setInitialData] = React.useState(null);
+    const [error, setError] = React.useState(null);
 
-    let currentFileData = null;
-    
-    // Load the file data that was saved by the background script.
-    chrome.storage.session.get(['previewFileData'], (result) => {
-        if (result.previewFileData) {
-            currentFileData = result.previewFileData;
-            renderExcalidraw(currentFileData);
-            // Clean up the storage so it's not reused accidentally.
-            chrome.storage.session.remove(['previewFileData']);
-        }
-    });
-
-    const renderExcalidraw = (fileData) => {
+    React.useEffect(() => {
         try {
-            loadingDiv.style.display = 'none';
-            errorDiv.classList.add('hidden');
-            excalidrawContainer.innerHTML = '';
+            const hash = window.location.hash.substring(1);
+            if (!hash) {
+                setError(new Error("No file data found in the URL."));
+                return;
+            }
+            const decodedData = atob(hash);
+            const jsonData = JSON.parse(decodedData);
+            
+            const sceneData = {
+                elements: jsonData.elements,
+                appState: { ...jsonData.appState, viewBackgroundColor: "#ffffff" },
+                files: jsonData.files,
+            };
 
-            const { Excalidraw } = window.ExcalidrawLib;
-            const data = JSON.parse(fileData.content);
-
-            const excalidrawComponent = React.createElement(Excalidraw, {
-                initialData: {
-                    elements: data.elements,
-                    appState: { ...data.appState, viewBackgroundColor: '#ffffff' }
-                },
-                viewModeEnabled: true,
-                zenModeEnabled: false,
-                gridModeEnabled: false,
-                theme: 'light',
-                name: fileData.name
-            });
-
-            ReactDOM.render(excalidrawComponent, excalidrawContainer);
+            setInitialData(sceneData);
         } catch (e) {
-            console.error('Error rendering Excalidraw:', e);
-            loadingDiv.style.display = 'none';
-            errorDiv.classList.remove('hidden');
+            console.error("Error parsing file data:", e);
+            setError(new Error("The provided file data is corrupted or invalid."));
         }
-    };
+    }, []);
 
-    // --- History-based Navigation ---
-    previewBtn.addEventListener('click', () => {
-        // Go forward to the preview (if you just came from the original page).
-        history.forward();
-    });
+    if (error) {
+        return React.createElement('div', { style: { padding: '20px', color: 'red' } }, `Error: ${error.message}`);
+    }
 
-    originalBtn.addEventListener('click', () => {
-        // Go back to the original raw file page.
-        history.back();
-    });
+    if (!initialData) {
+        return React.createElement('div', { style: { padding: '20px' } }, 'Loading preview...');
+    }
 
-    retryBtn.addEventListener('click', () => {
-        if (currentFileData) {
-            renderExcalidraw(currentFileData);
-        }
-    });
-}); 
+    return React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(ExcalidrawLib.Excalidraw, {
+            initialData: initialData,
+            viewModeEnabled: true,
+        })
+    );
+};
+
+const container = document.getElementById('root');
+const root = ReactDOM.createRoot(container);
+root.render(React.createElement(App)); 
