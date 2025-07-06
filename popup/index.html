@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excalibox</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="popup-container">
+        <header class="popup-header">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h1>Excalibox</h1>
+            </div>
+            <div class="status-indicator" id="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Active</span>
+            </div>
+        </header>
+
+        <main class="popup-main">
+            <div class="info-section">
+                <p class="description">
+                    Preview .excalidraw files directly in your browser with a beautiful overlay viewer.
+                </p>
+                
+                <div class="current-page-info" id="current-page-info">
+                    <p class="page-status">No .excalidraw file detected</p>
+                </div>
+            </div>
+
+            <div class="actions-section">
+                <button class="action-btn primary" id="create-test-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Create Test File
+                </button>
+                
+                <button class="action-btn secondary" id="open-excalidraw-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Open Excalidraw
+                </button>
+            </div>
+
+            <div class="features-section">
+                <h3>Features</h3>
+                <ul class="features-list">
+                    <li>✨ View .excalidraw files in overlay</li>
+                    <li>🎨 Beautiful, responsive design</li>
+                    <li>⌨️ ESC key to close viewer</li>
+                    <li>📱 Works on mobile devices</li>
+                    <li>🔒 Secure, no external tracking</li>
+                </ul>
+            </div>
+        </main>
+
+        <footer class="popup-footer">
+            <div class="version-info">
+                <span>v1.0.0</span>
+                <span class="separator">•</span>
+                <a href="#" id="github-link">GitHub</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
