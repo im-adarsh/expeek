@@ -36,6 +36,10 @@ module.exports = {
       patterns: [
         { from: "manifest.json" },
         { from: "viewer.html" },
+        {
+          from: "node_modules/@excalidraw/excalidraw/dist/excalidraw-assets",
+          to: "excalidraw-assets",
+        },
       ],
     }),
   ],

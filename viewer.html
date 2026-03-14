@@ -22,6 +22,8 @@
     <div id="loading">Loading…</div>
     <div id="error"></div>
     <div id="root"></div>
+    <!-- Must run before viewer.js so excalidraw picks up the local asset path -->
+    <script>window.EXCALIDRAW_ASSET_PATH = new URL("excalidraw-assets/", location.href).href;</script>
     <script src="viewer.js"></script>
   </body>
 </html>
