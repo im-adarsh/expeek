@@ -1,27 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Excalidraw Viewer for GitHub and GitLab",
-  "version": "1.0",
-  "description": "Displays a preview of .excalidraw files on GitHub and GitLab.",
+  "name": "Expeek – Excalidraw Viewer",
+  "version": "1.0.0",
+  "description": "Auto-renders .excalidraw files from GitHub and GitLab in a modal overlay.",
   "permissions": [],
   "host_permissions": [
     "https://github.com/*",
+    "https://raw.githubusercontent.com/*",
     "https://gitlab.com/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://github.com/*",
-        "https://gitlab.com/*"
+        "https://github.com/*/*.excalidraw",
+        "https://raw.githubusercontent.com/*/*.excalidraw",
+        "https://gitlab.com/*/*.excalidraw"
       ],
       "js": ["content.js"],
-      "css": ["style.css"]
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["viewer.html"],
-      "matches": ["<all_urls>"]
+      "resources": ["viewer.html", "viewer.js", "style.css"],
+      "matches": ["https://github.com/*", "https://raw.githubusercontent.com/*", "https://gitlab.com/*"]
     }
   ]
 }
