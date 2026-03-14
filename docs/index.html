@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expeek – Excalidraw Viewer for GitHub & GitLab</title>
+  <meta name="description" content="Chrome extension that instantly renders .excalidraw files from GitHub and GitLab. No download, no copy-paste." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1a2e;
+      --muted: #555;
+      --accent: #6c63ff;
+      --accent-light: #ede9ff;
+      --border: #e0e0e0;
+      --bg: #fafafa;
+      --white: #ffffff;
+      --radius: 10px;
+      --mono: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 24px 72px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-light); color: var(--accent);
+      font-size: 13px; font-weight: 600; padding: 4px 12px;
+      border-radius: 20px; margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800; letter-spacing: -0.03em; margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.15rem; color: var(--muted); max-width: 520px;
+      margin: 0 auto 36px;
+    }
+    .cta-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: var(--radius);
+      font-size: 15px; font-weight: 600; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary {
+      background: var(--white); color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+
+    /* ── Demo screenshot ── */
+    .demo {
+      max-width: 900px; margin: -24px auto 0; padding: 0 24px;
+      position: relative; z-index: 1;
+    }
+    .demo-frame {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .demo-bar {
+      background: #f2f2f2; border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .demo-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .demo-url {
+      flex: 1; background: var(--white); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 10px; font-size: 12px;
+      color: var(--muted); font-family: var(--mono);
+    }
+    .demo-canvas {
+      padding: 32px; min-height: 220px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff;
+    }
+    .demo-diagram {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      justify-content: center;
+    }
+    .demo-box {
+      border: 1.5px solid #333; border-radius: 6px;
+      padding: 8px 16px; font-size: 13px; font-family: var(--mono);
+      background: #fff; white-space: nowrap;
+    }
+    .demo-arrow {
+      font-size: 20px; color: #333; line-height: 1;
+    }
+
+    /* ── Sections ── */
+    .section {
+      max-width: 860px; margin: 0 auto; padding: 72px 24px;
+    }
+    .section-label {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    .section h2 {
+      font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 32px;
+    }
+    .section + .section { padding-top: 0; }
+
+    /* ── Features ── */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .feature {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+    }
+    .feature-icon { font-size: 28px; margin-bottom: 12px; }
+    .feature h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .feature p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+    }
+    .step-num {
+      flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+    }
+    .step-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .step-body p, .step-body code { font-size: 14px; color: var(--muted); }
+    .step-body code {
+      background: #f4f4f8; padding: 2px 6px; border-radius: 4px;
+      font-family: var(--mono); color: var(--ink);
+    }
+
+    /* ── URL table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      text-align: left; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); padding: 0 12px 10px;
+    }
+    td {
+      padding: 10px 12px; border-top: 1px solid var(--border);
+      font-family: var(--mono); font-size: 12.5px;
+    }
+    tr td:first-child { font-family: inherit; font-size: 14px; font-weight: 600; }
+
+    /* ── Code block ── */
+    pre {
+      background: #1e1e2e; color: #cdd6f4;
+      border-radius: var(--radius); padding: 20px 24px;
+      font-family: var(--mono); font-size: 13px;
+      overflow-x: auto; line-height: 1.6; margin-top: 16px;
+    }
+    pre .c { color: #6c7086; }
+    pre .k { color: #89b4fa; }
+    pre .s { color: #a6e3a1; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); text-align: center;
+      padding: 32px 24px; color: var(--muted); font-size: 14px;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--ink); }
+
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    @media (max-width: 600px) {
+      .hero { padding: 56px 20px 48px; }
+      .demo-canvas { padding: 20px; }
+      .demo-diagram { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    Open Source · MIT License
+  </div>
+  <h1>View <span>.excalidraw</span> files<br>directly on GitHub & GitLab</h1>
+  <p>Expeek is a Chrome extension that auto-renders Excalidraw diagrams in your browser — no download, no copy-paste.</p>
+  <div class="cta-group">
+    <a class="btn btn-primary" href="https://github.com/im-adarsh/expeek#installation">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+      Install Extension
+    </a>
+    <a class="btn btn-secondary" href="https://github.com/im-adarsh/expeek">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+</section>
+
+<!-- Demo -->
+<div class="demo">
+  <div class="demo-frame">
+    <div class="demo-bar">
+      <div class="demo-dot" style="background:#ff5f57"></div>
+      <div class="demo-dot" style="background:#febc2e"></div>
+      <div class="demo-dot" style="background:#28c840"></div>
+      <div class="demo-url">raw.githubusercontent.com/im-adarsh/expeek/main/example/sample.excalidraw</div>
+    </div>
+    <div class="demo-canvas">
+      <div class="demo-diagram">
+        <div class="demo-box">user</div>
+        <div class="demo-arrow">←</div>
+        <div class="demo-box">gtm</div>
+        <div class="demo-arrow">←</div>
+        <div class="demo-box">product requirement</div>
+        <div class="demo-arrow">←</div>
+        <div class="demo-box">engineers</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<div class="section">
+  <div class="section-label">Features</div>
+  <h2>Everything you need, nothing you don't</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>Auto-renders on open</h3>
+      <p>Navigate to any <code style="font-family:monospace;font-size:12px;background:#f4f4f8;padding:1px 5px;border-radius:3px">.excalidraw</code> URL and the viewer launches instantly.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔍</div>
+      <h3>Pan & zoom</h3>
+      <p>Full Excalidraw view mode — explore large diagrams at any zoom level.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔒</div>
+      <h3>View-only</h3>
+      <p>Diagrams are rendered read-only. Nothing is modified, uploaded, or tracked.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🌐</div>
+      <h3>GitHub & GitLab</h3>
+      <p>Supports blob pages and raw URLs on both GitHub and GitLab.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- Installation -->
+<div class="section">
+  <div class="section-label">Installation</div>
+  <h2>Up and running in 4 steps</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Clone &amp; install</h3>
+        <p>Clone the repo and install dependencies with <code>npm install</code>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Build</h3>
+        <p>Run <code>npm run build</code> to generate the <code>dist/</code> folder.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Load unpacked</h3>
+        <p>Open <code>chrome://extensions</code>, enable <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, select <code>dist/</code>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Open any .excalidraw URL</h3>
+        <p>Navigate to a <code>.excalidraw</code> file on GitHub or GitLab. Expeek opens the viewer automatically.</p>
+      </div>
+    </div>
+  </div>
+
+  <pre><span class="c"># Clone</span>
+git clone https://github.com/im-adarsh/expeek.git
+cd expeek
+
+<span class="c"># Install &amp; build</span>
+npm install
+npm run build
+
+<span class="c"># Load dist/ as unpacked extension in chrome://extensions</span></pre>
+</div>
+
+<hr class="divider" />
+
+<!-- Supported URLs -->
+<div class="section">
+  <div class="section-label">Compatibility</div>
+  <h2>Supported URL patterns</h2>
+  <table>
+    <thead>
+      <tr><th>Host</th><th>URL pattern</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>GitHub blob</td><td>github.com/{user}/{repo}/blob/{branch}/…/*.excalidraw</td></tr>
+      <tr><td>GitHub raw</td><td>raw.githubusercontent.com/{user}/{repo}/{branch}/…/*.excalidraw</td></tr>
+      <tr><td>GitLab blob</td><td>gitlab.com/{user}/{repo}/-/blob/{branch}/…/*.excalidraw</td></tr>
+      <tr><td>GitLab raw</td><td>gitlab.com/{user}/{repo}/-/raw/{branch}/…/*.excalidraw</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider" />
+
+<!-- Footer -->
+<footer>
+  <p>
+    Released under the <a href="https://github.com/im-adarsh/expeek/blob/main/LICENSE">MIT License</a> ·
+    Built by <a href="https://github.com/im-adarsh">Adarsh Kumar</a> ·
+    <a href="https://github.com/im-adarsh/expeek">GitHub</a>
+  </p>
+</footer>
+
+</body>
+</html>

@@ -37,6 +37,8 @@ function App() {
         appState: {
           ...(data.appState || {}),
           viewModeEnabled: true,
+          viewBackgroundColor: "#ffffff",
+          gridSize: null,
         },
         files: data.files || null,
       }}
