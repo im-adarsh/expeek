@@ -1,10 +1,12 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
+const webpack = require("webpack");
 
 module.exports = {
   entry: {
-    viewer: "./viewer.js",
     content: "./content.js",
+    background: "./background.js",
+    viewer: "./viewer.js",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -22,14 +24,18 @@ module.exports = {
   },
   resolve: {
     extensions: [".js", ".jsx"],
+    fallback: {
+      process: require.resolve("process/browser"),
+    },
   },
   plugins: [
+    new webpack.ProvidePlugin({
+      process: "process/browser",
+    }),
     new CopyPlugin({
       patterns: [
         { from: "manifest.json" },
         { from: "viewer.html" },
-        { from: "style.css" },
-        { from: "icons", to: "icons", noErrorOnMissing: true },
       ],
     }),
   ],

@@ -2,40 +2,43 @@ import { createRoot } from "react-dom/client";
 import { useState, useEffect } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 
-function Viewer() {
-  const [excalidrawData, setExcalidrawData] = useState(null);
+function App() {
+  const [data, setData] = useState(null);
 
   useEffect(() => {
-    // Signal to the content script that the iframe is ready
-    window.parent.postMessage("expeek:ready", "*");
-
-    function onMessage(e) {
-      if (e.data && e.data.type === "expeek:load") {
-        setExcalidrawData(e.data.data);
-      }
+    const rawUrl = new URLSearchParams(window.location.search).get("rawUrl");
+    if (!rawUrl) {
+      showError("No file URL provided.");
+      return;
     }
 
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
+    document.title = decodeURIComponent(rawUrl).split("/").pop();
+
+    fetch(rawUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        return res.json();
+      })
+      .then((json) => {
+        document.getElementById("loading").style.display = "none";
+        setData(json);
+      })
+      .catch((err) => {
+        showError(`Failed to load file: ${err.message}`);
+      });
   }, []);
 
-  if (!excalidrawData) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontFamily: "sans-serif", color: "#666" }}>
-        Loading…
-      </div>
-    );
-  }
+  if (!data) return null;
 
   return (
     <Excalidraw
       initialData={{
-        elements: excalidrawData.elements || [],
+        elements: data.elements || [],
         appState: {
-          ...(excalidrawData.appState || {}),
+          ...(data.appState || {}),
           viewModeEnabled: true,
         },
-        files: excalidrawData.files || null,
+        files: data.files || null,
       }}
       viewModeEnabled={true}
       zenModeEnabled={true}
@@ -43,5 +46,11 @@ function Viewer() {
   );
 }
 
-const root = createRoot(document.getElementById("root"));
-root.render(<Viewer />);
+function showError(msg) {
+  document.getElementById("loading").style.display = "none";
+  const el = document.getElementById("error");
+  el.style.display = "flex";
+  el.textContent = msg;
+}
+
+createRoot(document.getElementById("root")).render(<App />);

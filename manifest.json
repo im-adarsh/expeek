@@ -2,13 +2,16 @@
   "manifest_version": 3,
   "name": "Expeek – Excalidraw Viewer",
   "version": "1.0.0",
-  "description": "Auto-renders .excalidraw files from GitHub and GitLab in a modal overlay.",
-  "permissions": [],
+  "description": "Auto-renders .excalidraw files from GitHub and GitLab.",
+  "permissions": ["tabs"],
   "host_permissions": [
     "https://github.com/*",
     "https://raw.githubusercontent.com/*",
     "https://gitlab.com/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -20,10 +23,7 @@
       "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["viewer.html", "viewer.js", "style.css"],
-      "matches": ["https://github.com/*", "https://raw.githubusercontent.com/*", "https://gitlab.com/*"]
-    }
-  ]
+  "sandbox": {
+    "pages": ["viewer.html"]
+  }
 }

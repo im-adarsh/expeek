@@ -3,13 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Expeek Viewer</title>
+    <title>Expeek</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body, #root { width: 100%; height: 100%; overflow: hidden; }
+      #loading {
+        display: flex; align-items: center; justify-content: center;
+        height: 100%; font-family: sans-serif; color: #666; font-size: 16px;
+      }
+      #error {
+        display: none; align-items: center; justify-content: center;
+        height: 100%; font-family: sans-serif; color: #c0392b; font-size: 16px;
+        padding: 24px; text-align: center;
+      }
     </style>
   </head>
   <body>
+    <div id="loading">Loading…</div>
+    <div id="error"></div>
     <div id="root"></div>
     <script src="viewer.js"></script>
   </body>

@@ -16,25 +16,24 @@ After every code change, run `npm run build` and click the refresh icon on the e
 
 ## Architecture
 
+Everything lives in a single content script — no iframe, no background worker needed.
+
 ```
-content.js   →  injected into GitHub/GitLab pages
-                detects .excalidraw URL, fetches raw JSON, creates modal
-                        │
-                        │ postMessage({ type: "expeek:load", data })
-                        ▼
-viewer.html / viewer.js  →  iframe loaded from chrome-extension://
-                             React + @excalidraw/excalidraw renders diagram
+content.js  (content script, isolated JS world)
+  │
+  ├── detects .excalidraw URL
+  ├── fetches raw JSON via fetch()
+  └── renders React + Excalidraw directly into the page DOM
+      (modal overlay div appended to document.body)
 ```
 
 **Key files:**
 
 | File | Role |
 |------|------|
-| `content.js` | URL detection, raw fetch, modal DOM, postMessage handshake |
-| `viewer.js` | React component — receives data, renders `<Excalidraw>` |
-| `viewer.html` | Iframe shell (`<div id="root">`) |
-| `manifest.json` | MV3 config — host permissions, content script matches, web-accessible resources |
-| `webpack.config.js` | Bundles `content.js` + `viewer.js` → `dist/`, copies static files |
+| `content.js` | Everything: URL detection, fetch, React + Excalidraw modal |
+| `manifest.json` | MV3 config — host permissions, content script URL matches |
+| `webpack.config.js` | Bundles `content.js` → `dist/content.js` |
 
 ## URL Patterns Supported
 
@@ -47,17 +46,17 @@ viewer.html / viewer.js  →  iframe loaded from chrome-extension://
 
 ## Gotchas
 
+**No iframe — content script renders inline**
+`raw.githubusercontent.com` is served with `Content-Security-Policy: sandbox` which propagates to ALL child iframes, blocking script execution. The fix is to skip iframes entirely: React + Excalidraw are bundled directly into `content.js` and rendered into a div appended to `document.body`. Content scripts run in an isolated JS world that is not subject to the page's CSP — eval and dynamic code execution work fine.
+
 **CSS injection — must use `<style>` not `<link>`**
-GitHub and GitLab have strict `style-src` CSP that blocks `chrome-extension://` URLs. Styles are injected as inline `<style>` tags in `content.js`, not as a `<link>` to `style.css`. The `style.css` file is only kept for reference and copied to `dist/` but not used at runtime.
+GitHub and GitLab have strict `style-src` CSP that blocks `chrome-extension://` URLs. Styles are injected as inline `<style>` tags in `content.js`. Use `!important` on overlay styles to prevent the host page from overriding positioning/z-index.
 
 **GitHub SPA navigation**
 GitHub uses Turbo for client-side navigation. The content script only runs on full page loads. If a user clicks to a `.excalidraw` file from within GitHub (no hard reload), the extension won't trigger. Direct URL access (new tab, address bar, refresh) always works.
 
-**postMessage handshake**
-The content script sets up its `message` listener *before* the iframe loads. The iframe (viewer.js) fires `window.parent.postMessage("expeek:ready", "*")` in `useEffect` after React mounts. The content script then sends the file data. Do not reorder this sequence.
+**Bundle size**
+Webpack emits a size warning for `content.js` (~2.4 MiB) because `@excalidraw/excalidraw` is large. This is expected — the content script only loads on `.excalidraw` URLs so it doesn't affect normal browsing performance.
 
-**Bundle size warning**
-Webpack emits a size warning for `viewer.js` (~2.4 MiB) because `@excalidraw/excalidraw` is large. This is expected and fine for a Chrome extension — ignore it.
-
-**web_accessible_resources**
-`viewer.html` and `viewer.js` must be listed in `web_accessible_resources` in `manifest.json` so the content script can reference them via `chrome.runtime.getURL(...)` and load them in an iframe.
+**`unsafe-eval` in Chrome MV3**
+Chrome MV3 hard-blocks `unsafe-eval` in `content_security_policy.extension_pages`. Adding it causes "Failed to load extension". The inline content-script approach sidesteps this entirely since content scripts are not extension pages and are not subject to the extension CSP.
