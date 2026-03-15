@@ -8,6 +8,7 @@ Chrome extension that auto-renders `.excalidraw` files from GitHub and GitLab in
 npm install          # Install dependencies
 npm run build        # Production build → dist/
 npm run dev          # Development build with watch mode
+npm run icons        # Regenerate PNG icons from icons/icon.svg (auto-runs in build)
 ```
 
 Load the extension: Chrome → `chrome://extensions` → Developer mode → **Load unpacked** → select `dist/`.
@@ -16,24 +17,31 @@ After every code change, run `npm run build` and click the refresh icon on the e
 
 ## Architecture
 
-Everything lives in a single content script — no iframe, no background worker needed.
+Three-part architecture: content script → background worker → sandboxed viewer page.
 
 ```
 content.js  (content script, isolated JS world)
-  │
-  ├── detects .excalidraw URL
-  ├── fetches raw JSON via fetch()
-  └── renders React + Excalidraw directly into the page DOM
-      (modal overlay div appended to document.body)
+  │  detects .excalidraw URL, normalizes to raw URL
+  └─► chrome.runtime.sendMessage({ type: "open", rawUrl })
+         │
+background.js  (service worker)
+  │  receives message, navigates tab to viewer page
+  └─► chrome.tabs.update → viewer.html?rawUrl=<encoded>
+         │
+viewer.html + viewer.js  (sandboxed extension page)
+       fetches raw JSON, renders React + Excalidraw
 ```
 
 **Key files:**
 
 | File | Role |
 |------|------|
-| `content.js` | Everything: URL detection, fetch, React + Excalidraw modal |
+| `content.js` | URL detection + raw URL normalization, sends message to background |
+| `background.js` | Service worker — receives message, navigates tab to viewer |
+| `viewer.js` | React + Excalidraw component — fetches file, renders diagram |
+| `viewer.html` | Sandboxed extension page hosting viewer.js |
 | `manifest.json` | MV3 config — host permissions, content script URL matches |
-| `webpack.config.js` | Bundles `content.js` → `dist/content.js` |
+| `webpack.config.js` | Bundles three entry points → `dist/` |
 
 ## URL Patterns Supported
 
@@ -46,8 +54,8 @@ content.js  (content script, isolated JS world)
 
 ## Gotchas
 
-**No iframe — content script renders inline**
-`raw.githubusercontent.com` is served with `Content-Security-Policy: sandbox` which propagates to ALL child iframes, blocking script execution. The fix is to skip iframes entirely: React + Excalidraw are bundled directly into `content.js` and rendered into a div appended to `document.body`. Content scripts run in an isolated JS world that is not subject to the page's CSP — eval and dynamic code execution work fine.
+**Viewer runs in a sandboxed extension page, not inline**
+`raw.githubusercontent.com` CSP would block inline rendering. Instead, `background.js` navigates the tab to `viewer.html` (a sandboxed extension page declared under `sandbox.pages` in `manifest.json`). The viewer runs in an isolated context with its own CSP, not subject to the host page's restrictions. Content scripts (`content.js`) also run in an isolated JS world unaffected by page CSP.
 
 **CSS injection — must use `<style>` not `<link>`**
 GitHub and GitLab have strict `style-src` CSP that blocks `chrome-extension://` URLs. Styles are injected as inline `<style>` tags in `content.js`. Use `!important` on overlay styles to prevent the host page from overriding positioning/z-index.
@@ -56,7 +64,10 @@ GitHub and GitLab have strict `style-src` CSP that blocks `chrome-extension://` 
 GitHub uses Turbo for client-side navigation. The content script only runs on full page loads. If a user clicks to a `.excalidraw` file from within GitHub (no hard reload), the extension won't trigger. Direct URL access (new tab, address bar, refresh) always works.
 
 **Bundle size**
-Webpack emits a size warning for `content.js` (~2.4 MiB) because `@excalidraw/excalidraw` is large. This is expected — the content script only loads on `.excalidraw` URLs so it doesn't affect normal browsing performance.
+Webpack emits a size warning for `viewer.js` (~2.4 MiB) because `@excalidraw/excalidraw` is large. This is expected — the bundle only loads when viewing `.excalidraw` URLs so it doesn't affect normal browsing performance.
+
+**Legacy `content/` directory**
+A `content/content.js` file (231 lines) exists from an older inline-rendering approach. It is NOT used — the active entry point is `content.js` at the repo root. Ignore or delete `content/` to avoid confusion.
 
 **`unsafe-eval` in Chrome MV3**
-Chrome MV3 hard-blocks `unsafe-eval` in `content_security_policy.extension_pages`. Adding it causes "Failed to load extension". The inline content-script approach sidesteps this entirely since content scripts are not extension pages and are not subject to the extension CSP.
+Chrome MV3 blocks `unsafe-eval` in extension pages, but `viewer.html` is declared under `sandbox.pages` in `manifest.json`, which uses a separate CSP that can permit it. Content scripts (`content.js`) are also not subject to the extension CSP. Do not add `unsafe-eval` to `content_security_policy.extension_pages` — it causes "Failed to load extension".
