@@ -5,23 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Expeek</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body, #root { width: 100%; height: 100%; overflow: hidden; }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body, #root { width: 100%; height: 100%; }
+
+      /* ── Loading splash ── */
       #loading {
-        display: flex; align-items: center; justify-content: center;
-        height: 100%; font-family: sans-serif; color: #666; font-size: 16px;
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        z-index: 99;
+        transition: opacity 0.35s ease;
       }
+      #loading.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .splash-logo {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        margin-bottom: 20px;
+        box-shadow: 0 12px 40px rgba(79, 70, 229, 0.3), 0 2px 8px rgba(79, 70, 229, 0.15);
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-6px); }
+      }
+
+      .splash-name {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e1b4b;
+        letter-spacing: -0.3px;
+        margin-bottom: 6px;
+      }
+
+      .splash-hint {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-size: 13px;
+        color: #9ca3af;
+        margin-bottom: 32px;
+      }
+
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border: 2.5px solid #e5e7eb;
+        border-top-color: #4f46e5;
+        border-radius: 50%;
+        animation: spin 0.65s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* ── Error state ── */
       #error {
-        display: none; align-items: center; justify-content: center;
-        height: 100%; font-family: sans-serif; color: #c0392b; font-size: 16px;
-        padding: 24px; text-align: center;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        padding: 40px 24px;
+        text-align: center;
+        z-index: 99;
       }
+
+      .error-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #fef2f2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+
+      .error-title {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin-bottom: 8px;
+      }
+
+      .error-msg {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-size: 13px;
+        color: #6b7280;
+        max-width: 380px;
+        line-height: 1.6;
+        margin-bottom: 28px;
+      }
+
+      .error-back {
+        padding: 10px 22px;
+        border-radius: 8px;
+        background: #4f46e5;
+        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: opacity 0.15s;
+      }
+      .error-back:hover { opacity: 0.85; }
     </style>
   </head>
   <body>
-    <div id="loading">Loading…</div>
-    <div id="error"></div>
+    <!-- Loading splash -->
+    <div id="loading">
+      <svg class="splash-logo" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#4f46e5"/>
+            <stop offset="100%" stop-color="#9333ea"/>
+          </linearGradient>
+          <linearGradient id="iris" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+        </defs>
+        <rect width="128" height="128" rx="26" fill="url(#bg)"/>
+        <rect width="128" height="128" rx="26" fill="white" opacity="0.04"/>
+        <path d="M 14 64 Q 64 18 114 64 Q 64 110 14 64 Z" fill="white"/>
+        <circle cx="64" cy="64" r="22" fill="url(#iris)"/>
+        <circle cx="64" cy="64" r="12" fill="#1e1b4b"/>
+        <circle cx="71" cy="56" r="6" fill="white" opacity="0.95"/>
+        <circle cx="57" cy="71" r="3" fill="white" opacity="0.4"/>
+        <line x1="60" y1="68" x2="68" y2="60" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      </svg>
+      <div class="splash-name">Expeek</div>
+      <div class="splash-hint">Loading diagram…</div>
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error">
+      <div class="error-icon">⚠️</div>
+      <div class="error-title">Couldn't load diagram</div>
+      <div class="error-msg" id="error-msg"></div>
+      <button class="error-back" onclick="history.back()">Go back</button>
+    </div>
+
     <div id="root"></div>
+
     <!-- Must run before viewer.js so excalidraw picks up the local asset path -->
     <script>window.EXCALIDRAW_ASSET_PATH = new URL("excalidraw-assets/", location.href).href;</script>
     <script src="viewer.js"></script>

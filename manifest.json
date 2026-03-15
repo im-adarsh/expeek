@@ -3,6 +3,12 @@
   "name": "Expeek – Excalidraw Viewer",
   "version": "1.0.0",
   "description": "Auto-renders .excalidraw files from GitHub and GitLab.",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "permissions": ["tabs"],
   "host_permissions": [
     "https://github.com/*",

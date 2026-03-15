@@ -20,7 +20,9 @@ function App() {
         return res.json();
       })
       .then((json) => {
-        document.getElementById("loading").style.display = "none";
+        const loading = document.getElementById("loading");
+        loading.classList.add("fade-out");
+        setTimeout(() => { loading.style.display = "none"; }, 350);
         setData(json);
       })
       .catch((err) => {
@@ -50,9 +52,8 @@ function App() {
 
 function showError(msg) {
   document.getElementById("loading").style.display = "none";
-  const el = document.getElementById("error");
-  el.style.display = "flex";
-  el.textContent = msg;
+  document.getElementById("error").style.display = "flex";
+  document.getElementById("error-msg").textContent = msg;
 }
 
 createRoot(document.getElementById("root")).render(<App />);

@@ -36,6 +36,10 @@ module.exports = {
       patterns: [
         { from: "manifest.json" },
         { from: "viewer.html" },
+        { from: "icons/icon16.png" },
+        { from: "icons/icon32.png" },
+        { from: "icons/icon48.png" },
+        { from: "icons/icon128.png" },
         {
           from: "node_modules/@excalidraw/excalidraw/dist/excalidraw-assets",
           to: "excalidraw-assets",
